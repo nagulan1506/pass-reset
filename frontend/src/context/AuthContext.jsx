@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
       return;
     }
     api
-      .get('/auth/me')
+      .get('/api/auth/me')
       .then((res) => {
         if (res.data.success) setUser(res.data.user);
       })

@@ -17,6 +17,10 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 
+app.get('/', (req, res) => {
+  res.json({ message: 'Password reset API', docs: '/api/auth – register, login, forgot-password, reset-password', health: '/health' });
+});
+
 app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
