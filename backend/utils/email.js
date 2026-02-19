@@ -35,6 +35,6 @@ export const sendPasswordResetEmail = async (to, resetUrl) => {
     console.log('[Password Reset] Email sent to', to);
   } catch (err) {
     console.error('[Password Reset] SendGrid error:', err.response?.body || err.message);
-    throw new Error('Failed to send reset email. Please try again later.');
+    // Don't throw – let the route still return 200 so the user doesn't see 500
   }
 };

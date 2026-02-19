@@ -103,14 +103,22 @@ router.post('/forgot-password', async (req, res) => {
     user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000);
     await user.save({ validateBeforeSave: false });
 
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-    await sendPasswordResetEmail(user.email, resetUrl);
+    const frontendUrl = process.env.FRONTEND_URL || '';
+    const resetUrl = frontendUrl
+      ? `${frontendUrl.replace(/\/$/, '')}/reset-password?token=${token}`
+      : '';
+    if (resetUrl) {
+      await sendPasswordResetEmail(user.email, resetUrl);
+    } else {
+      console.warn('[Password Reset] FRONTEND_URL not set on Render – reset link not sent. Set FRONTEND_URL to your Netlify URL.');
+    }
 
     res.json({
       success: true,
       message: 'If an account exists, a reset link has been sent to your email',
     });
   } catch (err) {
+    console.error('[forgot-password]', err);
     res.status(500).json({ success: false, message: err.message || 'Server error' });
   }
 });
