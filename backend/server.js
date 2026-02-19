@@ -9,17 +9,28 @@ const PORT = process.env.PORT || 5000;
 
 connectDB();
 
-// CORS: set FRONTEND_URL to your Netlify URL (or comma-separated: Netlify,http://localhost:3000)
+// CORS: allow FRONTEND_URL (comma-separated), any *.netlify.app, and localhost
 const allowedOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(',').map((s) => s.trim()).filter(Boolean)
-  : ['http://localhost:3000', 'http://localhost:5173'];
+  : [];
+const defaultOrigins = ['http://localhost:3000', 'http://localhost:5173'];
+const allAllowed = [...new Set([...allowedOrigins, ...defaultOrigins])];
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (allAllowed.includes(origin)) return true;
+  if (origin.endsWith('.netlify.app') && origin.startsWith('https://')) return true;
+  return false;
+}
 
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    if (isAllowedOrigin(origin)) return cb(null, true);
     return cb(null, false);
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
 
