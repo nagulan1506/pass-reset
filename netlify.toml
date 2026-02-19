@@ -1,0 +1,8 @@
+# Netlify config – build the frontend app
+[build]
+  base     = "frontend"
+  command  = "npm run build"
+  publish  = "dist"
+
+[build.environment]
+  NODE_VERSION = "18"
