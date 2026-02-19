@@ -11,6 +11,7 @@ export function ForgotPassword() {
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
   const [email, setEmail] = useState('');
+  const [resetLink, setResetLink] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,6 +25,9 @@ export function ForgotPassword() {
     setLoading(false);
     if (res.success) {
       setSent(true);
+      if (res.resetLink) {
+        setResetLink(res.resetLink);
+      }
     } else {
       setError(res.message || 'Something went wrong');
     }
@@ -37,6 +41,16 @@ export function ForgotPassword() {
             If an account exists for <strong>{email}</strong>, you will receive a password reset link shortly.
             Check your spam folder if you don't see it.
           </p>
+          {resetLink && (
+            <div style={{ marginTop: '1rem', padding: '1rem', background: 'var(--bg-input)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                {resetLink.includes('localhost') ? '🔧 Dev mode: ' : ''}Reset link:
+              </p>
+              <a href={resetLink} style={{ color: 'var(--accent)', wordBreak: 'break-all', fontSize: '0.85rem' }}>
+                {resetLink}
+              </a>
+            </div>
+          )}
           <Link to="/login" className="formBackLink">Back to sign in</Link>
         </FormCard>
       </Layout>

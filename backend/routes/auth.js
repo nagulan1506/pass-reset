@@ -107,16 +107,30 @@ router.post('/forgot-password', async (req, res) => {
     const resetUrl = frontendUrl
       ? `${frontendUrl.replace(/\/$/, '')}/reset-password?token=${token}`
       : '';
-    if (resetUrl) {
-      await sendPasswordResetEmail(user.email, resetUrl);
-    } else {
-      console.warn('[Password Reset] FRONTEND_URL not set on Render – reset link not sent. Set FRONTEND_URL to your Netlify URL.');
+    
+    if (!resetUrl) {
+      console.error('[Password Reset] FRONTEND_URL not set on Render. Set FRONTEND_URL to your Netlify URL.');
+      return res.status(500).json({
+        success: false,
+        message: 'Server configuration error. Please contact support.',
+      });
     }
 
-    res.json({
+    const emailSent = await sendPasswordResetEmail(user.email, resetUrl);
+    
+    // In development/testing: if email wasn't sent (no SendGrid), return the link in response
+    const isDev = process.env.NODE_ENV !== 'production';
+    const response = {
       success: true,
       message: 'If an account exists, a reset link has been sent to your email',
-    });
+    };
+    
+    if (!emailSent && isDev) {
+      response.resetLink = resetUrl;
+      response.note = 'Email not sent (SendGrid not configured). Use this link to reset:';
+    }
+
+    res.json(response);
   } catch (err) {
     console.error('[forgot-password]', err);
     res.status(500).json({ success: false, message: err.message || 'Server error' });

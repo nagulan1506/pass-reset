@@ -6,10 +6,10 @@ export const sendPasswordResetEmail = async (to, resetUrl) => {
 
   if (!apiKey || !fromEmail) {
     console.warn(
-      '[Password Reset] Email not sent: set SENDGRID_API_KEY and FROM_EMAIL on Render. Reset link (for testing):',
-      resetUrl
+      '[Password Reset] Email not sent: SENDGRID_API_KEY or FROM_EMAIL not set on Render.'
     );
-    return;
+    console.warn('[Password Reset] Reset link (check Render logs):', resetUrl);
+    return false; // Return false to indicate email wasn't sent
   }
 
   sgMail.setApiKey(apiKey);
@@ -31,10 +31,23 @@ export const sendPasswordResetEmail = async (to, resetUrl) => {
   };
 
   try {
-    await sgMail.send(msg);
-    console.log('[Password Reset] Email sent to', to);
+    const result = await sgMail.send(msg);
+    console.log('[Password Reset] ✅ Email sent successfully to', to);
+    console.log('[Password Reset] SendGrid status:', result[0]?.statusCode);
+    return true; // Email was sent
   } catch (err) {
-    console.error('[Password Reset] SendGrid error:', err.response?.body || err.message);
-    // Don't throw – let the route still return 200 so the user doesn't see 500
+    console.error('[Password Reset] ❌ SendGrid error:');
+    console.error('[Password Reset] Status:', err.code);
+    console.error('[Password Reset] Message:', err.message);
+    if (err.response) {
+      console.error('[Password Reset] Response body:', JSON.stringify(err.response.body, null, 2));
+    }
+    // Common issues:
+    if (err.code === 401) {
+      console.error('[Password Reset] ⚠️  Invalid API key. Check SENDGRID_API_KEY on Render.');
+    } else if (err.code === 403) {
+      console.error('[Password Reset] ⚠️  API key lacks permissions or sender not verified. Check FROM_EMAIL is verified in SendGrid.');
+    }
+    return false; // Email was not sent
   }
 };
