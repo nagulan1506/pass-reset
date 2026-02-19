@@ -14,7 +14,26 @@
 | `SENDGRID_API_KEY` | No* | SendGrid API key for reset emails | `SG.xxxxxxxxxxxxxxxx` |
 | `FROM_EMAIL` | No* | Sender email (e.g. verified in SendGrid) | `noreply@yourdomain.com` |
 
-\* If omitted, reset link is only logged in the server console (no email sent).
+\* **Required for reset emails.** If omitted, no email is sent and the reset link is only logged in the server console (see Render logs).
+
+#### How to get reset emails working (SendGrid)
+
+1. **Sign up:** [SendGrid](https://sendgrid.com) → create a free account.
+2. **Verify sender:**  
+   - Go to **Settings → Sender Authentication**.  
+   - Use **Single Sender Verification**: add the email you want to send from (e.g. `noreply@yourdomain.com` or your Gmail).  
+   - Complete the verification (click the link SendGrid sends to that inbox).
+3. **Create API key:**  
+   - **Settings → API Keys → Create API Key.**  
+   - Name it (e.g. `pass-reset`), choose **Restricted Access**, enable **Mail Send → Full Access** (or at least Mail Send).  
+   - Copy the key (starts with `SG.`); you won’t see it again.
+4. **Set on Render:**  
+   - In your Render service → **Environment**:  
+     - `SENDGRID_API_KEY` = the key you copied (e.g. `SG.xxxx...`).  
+     - `FROM_EMAIL` = the **exact** verified sender address (e.g. `noreply@yourdomain.com`).  
+   - Set `FRONTEND_URL` to your Netlify URL (e.g. `https://idyllic-croquembouche-614b97.netlify.app`) so the link in the email points to your app.
+5. **Redeploy** the backend on Render so the new env vars are used.
+6. Check **spam/junk** if you don’t see the email. For Gmail/Outlook, first emails from a new sender often land in spam until you mark as “Not spam”.
 
 ---
 

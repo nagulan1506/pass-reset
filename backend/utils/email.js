@@ -1,14 +1,21 @@
 import sgMail from '@sendgrid/mail';
 
 export const sendPasswordResetEmail = async (to, resetUrl) => {
-  if (!process.env.SENDGRID_API_KEY) {
-    console.warn('SENDGRID_API_KEY not set – skipping email. Reset link:', resetUrl);
+  const apiKey = process.env.SENDGRID_API_KEY;
+  const fromEmail = process.env.FROM_EMAIL;
+
+  if (!apiKey || !fromEmail) {
+    console.warn(
+      '[Password Reset] Email not sent: set SENDGRID_API_KEY and FROM_EMAIL on Render. Reset link (for testing):',
+      resetUrl
+    );
     return;
   }
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+  sgMail.setApiKey(apiKey);
   const msg = {
     to: to,
-    from: process.env.FROM_EMAIL || 'noreply@example.com',
+    from: fromEmail,
     subject: 'Password Reset – Secure Link',
     text: `You requested a password reset. Click the link below (valid for 1 hour):\n\n${resetUrl}\n\nIf you did not request this, ignore this email.`,
     html: `
@@ -22,5 +29,12 @@ export const sendPasswordResetEmail = async (to, resetUrl) => {
       </div>
     `,
   };
-  await sgMail.send(msg);
+
+  try {
+    await sgMail.send(msg);
+    console.log('[Password Reset] Email sent to', to);
+  } catch (err) {
+    console.error('[Password Reset] SendGrid error:', err.response?.body || err.message);
+    throw new Error('Failed to send reset email. Please try again later.');
+  }
 };
